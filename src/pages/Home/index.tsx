@@ -5,6 +5,7 @@ import { ProductList } from './styles';
 import { api } from '../../services/api';
 import { formatPrice } from '../../util/format';
 import { useCart } from '../../hooks/useCart';
+import { toast } from 'react-toastify';
 
 interface Product {
   id: number;
@@ -26,9 +27,9 @@ const Home = (): JSX.Element => {
   const { addProduct, cart } = useCart();
 
   const cartItemsAmount = cart.reduce((sumAmount, product) => {
-    // TODO
+    // TODO ok
     sumAmount[product.id] = product.amount
-
+    toast(sumAmount)
     return sumAmount;
   }, {} as CartItemsAmount)
 
@@ -67,7 +68,7 @@ const Home = (): JSX.Element => {
         >
           <div data-testid="cart-product-quantity">
             <MdAddShoppingCart size={16} color="#FFF" />
-            {/* {cartItemsAmount[product.id] || 0} */} 2
+            { cartItemsAmount[product.id] || 0 }
           </div>
 
           <span>ADICIONAR AO CARRINHO</span>

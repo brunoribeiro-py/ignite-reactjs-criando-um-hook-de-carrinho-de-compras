@@ -35,17 +35,65 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   const addProduct = async (productId: number) => {
     try {
       // TODO
-      console.log(cart)
+      const productAlreadyExists = cart.find(product => product.id === productId);
+
+      if (productAlreadyExists) {
+        const { amount: productAmount } = productAlreadyExists;
+        const { data: stock } = await api.get(`/stock/${productId}`);
+        const productIsAvailableInStock = stock.amount > productAmount;
+
+        if (!productIsAvailableInStock) {
+          toast.error('Quantidade solicitada fora de estoque');
+
+          return;
+        }
+
+        const updatedAmountCartProduct = cart.map(product => {
+          return product.id === productId
+          ? {...product, amount: productAmount + 1}
+          : product
+        });
+
+        setCart(updatedAmountCartProduct);
+        localStorage.setItem(
+          '@RocketShoes:cart',
+          JSON.stringify(updatedAmountCartProduct)
+        );
+
+        return;
+      }
+
+      const { data: productData } = await api.get<Product>(`/products/${productId}`);
+
+      const cartWithNewProduct = [...cart, {...productData, amount: 1}];
+
+      setCart(cartWithNewProduct);
+      localStorage.setItem(
+        '@RocketShoes:cart',
+        JSON.stringify(cartWithNewProduct)
+      );
     } catch {
       // TODO
+      toast.error('Erro na adição do produto')
     }
   };
 
   const removeProduct = (productId: number) => {
     try {
       // TODO
+      const productAlreadyExists = cart.find(product => product.id === productId);
+
+      if (!productAlreadyExists) throw Error;
+
+      const filteredCart = cart.filter(product => product.id !== productId)
+
+      setCart(filteredCart);
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(filteredCart));
+
+
     } catch {
       // TODO
+      toast.error('Erro na remoção do produto');
     }
   };
 
@@ -55,8 +103,35 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   }: UpdateProductAmount) => {
     try {
       // TODO
+      if (amount < 1) return;
+      const { data: stock } = await api.get<Stock>(`/stock/${productId}`);
+      const productIsAvailableInStock = stock.amount >= amount;
+
+      if (!productIsAvailableInStock) {
+        toast.error('Quantidade solicitada fora de estoque');
+
+        return;
+      }
+
+      const productAlreadyExists = cart.find(product => product.id === productId);
+
+      if (!productAlreadyExists) throw Error();
+
+      const updatedAmountCartProduct = cart.map(product => {
+        return product.id === productId
+        ? {...product, amount: amount}
+        : product
+      })
+
+      setCart(updatedAmountCartProduct);
+
+      localStorage.setItem(
+        '@RocketShoes:cart',
+        JSON.stringify(updatedAmountCartProduct)
+      )
     } catch {
       // TODO
+      toast.error('Erro na alteração de quantidade do produto')
     }
   };
 
